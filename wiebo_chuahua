@@ -1,0 +1,244 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar 28 10:03:10 2023
+
+@author: m1361
+"""
+
+# !/bin/env python3
+# -*- coding: utf-8 -*
+"""
+"""
+
+try:
+    import requests
+    import json
+    import sys
+    import os
+    import re
+    import time
+    import random
+    import asyncio
+    import ssl
+    from bs4 import BeautifulSoup
+except Exception as e:
+    print(e)
+requests.packages.urllib3.disable_warnings()
+ssl._create_default_https_context = ssl._create_unverified_context
+# --------------------------------------------------------------------------------------------
+Script_Name = "微博签到"
+Name_Pinyin = "weibo"
+Script_Change = ""
+Script_Version = "1.0.0"
+# --------------------------------------------------------------------------------------------
+async def start():
+    global ckArr
+    for inx, data in enumerate(ckArr):
+        msg("开始第" + str(inx + 1) + "个账号")
+        ck = data
+        await asyncio.sleep(1)
+        if "@" in ck:
+            _auth_gsid = ck.split("@")
+            Authorization = _auth_gsid[0]
+            gsid = _auth_gsid[1]
+
+            if f"{Name_Pinyin}_chid" in os.environ:
+                ch_idArr = []
+                _data = os.environ[f"{Name_Pinyin}_chid"]
+                if "#" in _data:
+                    _ck = _data.split("#")
+                    ch_idArr = _ck
+            else:
+                print(f"没有变量{name}")
+                input("stop停止脚本")
+        print(ch_idArr)
+        for i in range(0, len(ch_idArr)):
+            ch_id = ch_idArr[i]
+            Sign(ch_id, gsid, Authorization)
+            time.sleep(random.randint(8, 24))
+
+    # datas = [
+    #     ]
+    # for j in range(0, len(datas)):
+    #     data = datas[j]
+    #     # Sign(ch_id,gsid,Authorization)
+    #     comment(gsid, Authorization, data)
+    #     # time.sleep(60)
+    #     time.sleep(random.randint(45, 61))
+        
+def ql_env(name):
+    global ckArr
+    if name in os.environ:
+        ckArr = []
+        _data = os.environ[name]
+        if "#" in _data:
+            _ck = _data.split("#")
+            ckArr = _ck
+    else:
+        print(f"没有变量{name}")
+        input("stop停止脚本")
+
+
+
+
+def gettime():
+    timestamp = int(time.time() * 1000)
+    # print(timestamp)
+    return timestamp
+
+
+def Sign(ch_id, gsid, Authorization):
+    # url = f"https://api.weibo.cn/2/page/button?gsid=_2A25JLChzDeRxGeFM61UU8ijPwzmIHXVoeDy7rDV6PUJbkdB-LXLQkWpNQPoY4EEy8J4I3gNDzp-vwdWoHjDlUt1V&wm=3333_2001&launchid=10000365--x&b=0&from=10D3393010&c=iphone&networktype=5g&v_p=90&skin=default&v_f=1&s=7cf9e718&lang=zh_CN&sflag=1&ua=iPhone14,5__weibo__13.3.3__iphone__os16.1&ft=11&aid=01A6LqDpevY7hTjywh582FiLI0vUS7ELbW8KGMTDAPgGd8jkA.&moduleID=pagecard&oriuicode=10000011_10001387&sourcetype=page&orifid=profile_me%24%24232478_-_bottom_mine_usual_visit&count=15&luicode=10001387&fid={ch_id}_-_feed&uicode=10000011&request_url=http%3A%2F%2Fi.huati.weibo.com%2Fmobile%2Fsuper%2Factive_checkin%3Fpageid%3D{ch_id}%26in_page%3D1&page=1&lfid=232478_-_bottom_mine_usual_visit&page_interrupt_enable=1&since_id=%7B%22max_id%22%3A4886088004928822,%22ad_after%22%3A3%7D&ul_sid=5903FDE5-547C-441A-ACDD-AA668ACE225E&ul_hid=F1ED4B63-696C-4F96-8366-FA87BFE045FA&ul_ctime=gettime()"
+    url = f"https://api.weibo.cn/2/page/button?gsid={gsid}&launchid=10000365--x&from=10D3393010&c=iphone&networktype=5g&s=7cf9e718&lang=zh_CN&ua=iPhone14,5__weibo__13.3.3__iphone__os16.1&fid={ch_id}_-_feed&request_url=http%3A%2F%2Fi.huati.weibo.com%2Fmobile%2Fsuper%2Factive_checkin%3Fpageid%3D{ch_id}%26in_page%3D1"
+    headers = {
+        'Host': 'api.weibo.cn',
+        'User-Agent': 'Weibo/78083 (iPhone; iOS 16.1; Scale/3.00)',
+        'Authorization': Authorization
+    }
+    response = requests.request("GET", url, headers=headers)
+    ret = response.json()
+    if 'errmsg' in ret:
+        msg(ret['errmsg'])
+    elif 'button' in ret:
+        msg(ret['button']['name'])
+
+
+
+def comment(gsid, Authorization, data):
+    url = f"https://api.weibo.cn/2/comments/create?gsid={gsid}&launchid=10000365--x&from=10D3393010&c=iphone&networktype=5g&s=7cf9e718&lang=zh_CN&ua=iPhone14,5__weibo__13.3.3__iphone__os16.1&ft=11&aid=01A6LqDpevY7hTjywh582FiLI0vUS7ELbW8KGMTDAPgGd8jkA."
+    headers = {
+        "Host": "api.weibo.cn",
+        "Connection": "keep-alive",
+        "Content-Length": "787",
+        "X-Sessionid": "25DEA255-530B-4AAC-8C36-ADBF1CEB799C",
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+        "cronet_rid": "4339351",
+        "SNRT": "normal",
+        "x-engine-type": "cronet-98.0.4758.87",
+        "X-Log-Uid": "7207526385",
+        "X-Validator": "KCyQyr/HFk8Aq2WUGLs0HytYYEKlKZ6MC/VbuARVCrQ=",
+        "User-Agent": "Weibo/78083 (iPhone; iOS 16.1; Scale/3.00)",
+        "Authorization": Authorization,
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US,en"
+    }
+    response = requests.request("POST", url, headers=headers, data=data).json()
+    if 'errmsg' in response:
+        msg(f"转发{response['errmsg']}")
+    else:
+        msg(f"转发{response['text']}")
+
+# ====================================================================
+def last_version(name, mold):
+    url = ''
+    if mold == 1:
+        url = f"https://raw/master/{name}.py"
+    try:
+        _url = url
+        _headers = {}
+        resp = requests.get(url=_url, headers=_headers, verify=False)
+        result = resp.text
+        resp.close()
+        r = re.compile(r'Script_Version = "(.*?)"')
+        _data = r.findall(result)
+        if not _data:
+            return "出现未知错误 ,请稍后重试!"
+        else:
+            return _data[0]
+    except Exception as err:
+        print(err)
+        
+# 通知服务
+class Msg(object):
+    def __init__(self, m=''):
+        self.str_msg = m
+        self.message()
+
+    # noinspection PyMethodMayBeStatic
+    def get_sendnotify(self):
+        if not os.path.exists("sendNotify.py"):
+            cur_path = os.getcwd()
+            print(f"未找到通知依赖文件,将于脚本执行目录({cur_path})新建:sendNotify.py (url为https://sendNotify.py)")
+            try:
+                url = 'https://raw/sendNotify.py'
+                response = requests.get(url)
+                with open('sendNotify.py', "w+", encoding="utf-8") as f:
+                    f.write(response.text)
+            except Exception as err:
+                print(err)
+        else:
+            print("文件已存在,跳过")
+            pass
+        pass
+
+    def message(self):
+        global msg_info
+        print(self.str_msg)
+        try:
+            # msg_info = ''
+            msg_info = f"{msg_info}\n{self.str_msg}"
+        except Exception as err:
+            print(err)
+            msg_info = "{}".format(self.str_msg)
+        sys.stdout.flush()
+        # 这代码的作用就是刷新缓冲区。
+        # 当我们打印一些字符时 ,并不是调用print函数后就立即打印的。一般会先将字符送到缓冲区 ,然后再打印。
+        # 这就存在一个问题 ,如果你想等时间间隔的打印一些字符 ,但由于缓冲区没满 ,不会打印。就需要采取一些手段。如每次打印后强行刷新缓冲区。
+
+    def main(self):
+        global send
+        cur_path = os.getcwd()
+        # print(cur_path)
+        if os.path.exists(cur_path + "/sendNotify.py"):
+            # noinspection PyBroadException
+            try:
+                from sendNotify import send
+            except Exception as err:
+                self.get_sendnotify()
+                print(err)
+                try:
+                    from sendNotify import send
+                except Exception as err:
+                    print(err)
+                    print("加载通知服务失败~")
+        else:
+            self.get_sendnotify()
+            try:
+                from sendNotify import send
+            except Exception as err:
+                print(err)
+                print("加载通知服务失败~")
+
+Msg().main()
+
+def msg(data):
+    Msg(data)
+
+
+
+def tip():
+    # global ckArr
+    print("================ 脚本只支持青龙新版 =================")
+    print("============ 具体教程以请自行查看顶部教程 =============")
+    
+    # msg(f"🔔 {Script_Name}，开始! ")
+    # origin_version = last_version(Name_Pinyin, 1)
+    # msg(f"📌 本地脚本: {Script_Version}\n    远程仓库版本: {origin_version}")
+    # if str(Script_Version) == str(origin_version):
+    #     msg(f"📌 🆙 脚本版本一致，完成内容: {Script_Change}")
+    # else:
+    #     msg('📌 📌 📌 发现版本更新！请尽快更新！📌 📌 📌 \n')
+    #     msg(f"📌 🆙 更新内容: {Script_Change}")
+
+    print(f"📌 共发现 {str(len(ckArr))} 个账号")
+
+if __name__ == '__main__':
+    global ckArr, msg_info, send
+    print(f"{Name_Pinyin}_DATA")
+    ql_env(f"{Name_Pinyin}_DATA")
+    # ckArr = os.environ.get(f"{Name_Pinyin}_DATA")
+    # print(ckArr)
+    tip()
+    asyncio.run(start())
+    send(f"{Script_Name}", msg_info)
